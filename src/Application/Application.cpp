@@ -3,6 +3,10 @@
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
 
+#include "nanovg.h"
+#define NANOVG_GL3_IMPLEMENTATION
+#include "nanovg_gl.h"
+
 #include <chrono>
 #include <mutex>
 #include <thread>
@@ -60,6 +64,12 @@ std::expected<void, Application::Error> Application::Init() {
 
   if (glewInit() != GLEW_OK) {
     return std::unexpected(Error("Failed to initialize GLEW"));
+  }
+
+  m_NVGContext = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES | NVG_DEBUG);
+
+  if (m_NVGContext == nullptr) {
+    return std::unexpected(Error("Failed to create NVG context"));
   }
 
   ImGui::CreateContext();
@@ -144,32 +154,38 @@ std::expected<void, Application::Error> Application::Run() {
 
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
+
     ImGui::NewFrame();
-    {
-      ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking;
 
-      const ImGuiViewport *viewport = ImGui::GetMainViewport();
-      const ImVec2 windowPos = viewport->Pos;
-      ImGui::SetNextWindowPos(ImVec2(windowPos.x - 1, windowPos.y));
-      ImGui::SetNextWindowSize(ImVec2(viewport->Size.x + 1, viewport->Size.y));
-      ImGui::SetNextWindowViewport(viewport->ID);
-      ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 4.0f);
-      ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-      ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-      window_flags |= ImGuiWindowFlags_NoTitleBar |
-                      ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
-                      ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBackground;
-      window_flags |=
-          ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+    ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking;
 
-      ImGui::Begin("DockSpaceWindow", nullptr, window_flags);
+    const ImGuiViewport *viewport = ImGui::GetMainViewport();
+    const ImVec2 windowPos = viewport->Pos;
+    ImGui::SetNextWindowPos(ImVec2(windowPos.x - 1, windowPos.y));
+    ImGui::SetNextWindowSize(ImVec2(viewport->Size.x + 1, viewport->Size.y));
+    ImGui::SetNextWindowViewport(viewport->ID);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 4.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+    window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse |
+                    ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+                    ImGuiWindowFlags_NoBackground;
+    window_flags |=
+        ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
 
-      m_Layer->OnUIRender();
+    ImGui::Begin("DockSpaceWindow", nullptr, window_flags);
 
-      ImGui::PopStyleVar(3);
+    m_Layer->OnUIRender();
 
-      ImGui::End();
-    }
+    ImGui::Begin("NanoVG");
+    ImVec2 pos = ImGui::GetCursorScreenPos();
+    ImVec2 size = ImGui::GetContentRegionAvail();
+    // Just reserve the space in ImGui but don't draw anything yet
+    ImGui::InvisibleButton("canvas", size);
+    ImGui::End();
+
+    ImGui::PopStyleVar(3);
+    ImGui::End();
 
     ImGui::Render();
 
@@ -178,7 +194,43 @@ std::expected<void, Application::Error> Application::Run() {
     glViewport(0, 0, display_w, display_h);
     glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
     glClear(GL_COLOR_BUFFER_BIT);
+
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+    int fbWidth = static_cast<int>(size.x);
+    int fbHeight = static_cast<int>(size.y);
+    if (fbWidth > 0 && fbHeight > 0) {
+      // Save the current OpenGL state
+      GLint last_viewport[4];
+      glGetIntegerv(GL_VIEWPORT, last_viewport);
+      GLboolean last_scissor_test;
+      glGetBooleanv(GL_SCISSOR_TEST, &last_scissor_test);
+
+      // Set up GL state for NanoVG
+      glEnable(GL_BLEND);
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      glEnable(GL_CULL_FACE);
+      glDisable(GL_DEPTH_TEST);
+      glDisable(GL_SCISSOR_TEST);
+
+      // Set viewport to match the NanoVG window size
+      glViewport(pos.x, display_h - pos.y - fbHeight, fbWidth, fbHeight);
+
+      nvgBeginFrame(m_NVGContext, fbWidth, fbHeight, 1.0f);
+
+      nvgBeginPath(m_NVGContext);
+      nvgRect(m_NVGContext, 0, 0, fbWidth - 20, fbHeight - 20);
+      nvgFillColor(m_NVGContext, nvgRGB(255, 0, 0));
+      nvgFill(m_NVGContext);
+
+      nvgEndFrame(m_NVGContext);
+
+      glViewport(last_viewport[0], last_viewport[1], last_viewport[2],
+                 last_viewport[3]);
+      if (last_scissor_test)
+        glEnable(GL_SCISSOR_TEST);
+    }
+
     glfwSwapBuffers(m_Window);
 
     const float time = GetTime();

@@ -21,6 +21,8 @@
 
 #include "imgui.h"
 
+struct NVGcontext;
+
 class Application {
   struct ApplicationSpecifications {
     std::string name;
@@ -82,6 +84,7 @@ private:
   ApplicationSpecifications m_Specification;
   static Application *s_Instance;
   GLFWwindow *m_Window;
+  NVGcontext *m_NVGContext = nullptr;
 
   std::unordered_map<std::string, ImFont *> m_Fonts;
 

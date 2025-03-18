@@ -1,4 +1,4 @@
-# FS2024 Display Gauge Emulator
+# FS2024 Display Emulator
 
 **Linux prototype for Microsoft Flight Simulator 2024 (FS2024) WASM gauge development**
 

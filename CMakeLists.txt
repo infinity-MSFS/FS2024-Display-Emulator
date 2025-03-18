@@ -27,6 +27,7 @@ set(CMAKE_CXX_STANDARD 26)
 find_package(OpenGL REQUIRED)
 find_package(CURL REQUIRED)
 find_package(GLEW REQUIRED)
+find_package(nanovg CONFIG REQUIRED)
 set(GLFW_BUILD_WAYLAND ON)
 find_package(glfw3 CONFIG REQUIRED)
 
@@ -40,7 +41,9 @@ add_executable(FS2024_WASM_Emulator src/main.cpp
         src/Application/Layer.hpp
         src/GaugeLoader/GaugeLoader.cpp
         src/GaugeLoader/GaugeLoader.hpp
-        src/FileDialog/FileDialog.hpp)
+        src/FileDialog/FileDialog.hpp
+        src/InstrumentRenderer/InstrumentRenderer.cpp
+        src/InstrumentRenderer/InstrumentRenderer.hpp)
 
 file(GLOB IMGUI_SOURCES
         ${infinity_SOURCE_DIR}/src/imgui/
@@ -57,4 +60,4 @@ target_sources(FS2024_WASM_Emulator PRIVATE ${IMGUI_SOURCES})
 target_include_directories(FS2024_WASM_Emulator PRIVATE ${infinity_SOURCE_DIR}/src/imgui)
 target_link_options(FS2024_WASM_Emulator PRIVATE -rdynamic)
 
-target_link_libraries(FS2024_WASM_Emulator PRIVATE OpenGL::GL glfw CURL::libcurl GLEW::GLEW)
+target_link_libraries(FS2024_WASM_Emulator PRIVATE OpenGL::GL glfw CURL::libcurl nanovg::nanovg GLEW::GLEW)
