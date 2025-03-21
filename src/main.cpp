@@ -1,14 +1,13 @@
+#include <iostream>
+
 #include "Application/Application.hpp"
 #include "Application/Layer.hpp"
 #include "FileDialog/FileDialog.hpp"
 #include "GaugeLoader/GaugeLoader.hpp"
-#include <iostream>
 
 class RenderLayer : public Layer {
-public:
-  void OnAttach() override {
-    std::cout << "RenderLayer::OnAttach" << std::endl;
-  }
+  public:
+  void OnAttach() override { std::cout << "RenderLayer::OnAttach" << std::endl; }
 
   void OnUIRender() override {
     ImGui::Text("Render Layer");
@@ -26,6 +25,13 @@ public:
         }
       }
     }
+    if (ImGui::Button("Unload All Gauges")) {
+      if (GaugeLoader::GetInstance()->AreGaugesLoaded()) {
+        if (auto result = GaugeLoader::GetInstance()->UnloadAllGauges(); !result.has_value()) {
+          std::cerr << "Error unloading gauges: " << result.error() << std::endl;
+        }
+      }
+    }
   }
 
   void OnDetach() override {}
@@ -34,8 +40,7 @@ public:
 };
 
 int EntryPoint(const int argc, char **argv) {
-  auto app = Application::CreateApplication(argc, argv,
-                                            std::make_unique<RenderLayer>());
+  auto app = Application::CreateApplication(argc, argv, std::make_unique<RenderLayer>());
   if (!app) {
     std::cerr << "Failed to create application" << std::endl;
     return -1;
@@ -43,9 +48,6 @@ int EntryPoint(const int argc, char **argv) {
   app->Run();
 }
 
-extern "C" void Linkage() {
-  std::cerr << "WARNING: Dummy Linkage() called (this may cause issues!)"
-            << std::endl;
-}
+extern "C" void Linkage() { std::cerr << "WARNING: Dummy Linkage() called (this may cause issues!)" << std::endl; }
 
 int main(const int argc, char **argv) { EntryPoint(argc, argv); }

@@ -2,14 +2,9 @@
 #define GLFW_INCLUDE_NONE
 #define GLFW_EXPOSE_NATIVE_WAYLAND
 
-#include "GL/glew.h"
-
-#include "GL/gl.h"
-#include "GLFW/glfw3.h"
-#include "Layer.hpp"
-
 #include <expected>
 #include <functional>
+#include <imgui_internal.h>
 #include <iostream>
 #include <memory>
 #include <optional>
@@ -19,9 +14,12 @@
 #include <utility>
 #include <vector>
 
+#include "GL/glew.h"
+//
+#include "GL/gl.h"
+#include "GLFW/glfw3.h"
+#include "Layer.hpp"
 #include "imgui.h"
-
-#include <imgui_internal.h>
 
 struct NVGcontext;
 
@@ -38,28 +36,26 @@ class Application {
   struct Error {
     std::string message;
 
-    explicit Error(const std::string &msg) : message(msg) {}
+    explicit Error(const std::string &msg)
+        : message(msg) {}
 
     void Dispatch() const { std::cerr << "Error: " << message << std::endl; }
   };
 
-public:
+  public:
   explicit Application(const ApplicationSpecifications &specifications);
   ~Application();
 
-  static std::unique_ptr<Application>
-  CreateApplication(int argc, char **argv, std::unique_ptr<Layer> layer);
+  static std::unique_ptr<Application> CreateApplication(int argc, char **argv, std::unique_ptr<Layer> layer);
 
-  template <typename T> void PushLayer() {
+  template<typename T>
+  void PushLayer() {
     static_assert(std::is_base_of_v<Layer, T>, "T must derive from Layer");
     m_Layer = std::make_shared<T>();
     m_Layer->OnAttach();
   }
 
-  void PushLayer(const std::shared_ptr<Layer> &layer) {
-    m_Layer = layer;
-    layer->OnAttach();
-  }
+  void PushLayer(const std::shared_ptr<Layer> &layer) { m_Layer = layer; }
 
   GLFWwindow *GetHandle() { return m_Window; }
 
@@ -71,20 +67,23 @@ public:
 
   static ImFont *GetFont(const std::string &name);
 
-  template <typename F> void QueueEvent(F &&func) { m_EventQueue.push(func); }
+  template<typename F>
+  void QueueEvent(F &&func) {
+    m_EventQueue.push(func);
+  }
 
   static std::optional<Application *> Get();
 
   ApplicationSpecifications GetSpecifications() { return m_Specification; }
 
-private:
+  private:
   std::expected<void, Error> Init();
   static const char *SetupGLVersion();
   std::expected<void, Error> Shutdown();
 
   static void GLFWErrorCallback(int error, const char *description);
 
-private:
+  private:
   ApplicationSpecifications m_Specification;
   static Application *s_Instance;
   GLFWwindow *m_Window;

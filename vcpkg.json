@@ -4,6 +4,7 @@
   "dependencies": [
     "curl",
     "nanovg",
+    "nlohmann-json",
     {
       "name": "glfw3",
       "features": [

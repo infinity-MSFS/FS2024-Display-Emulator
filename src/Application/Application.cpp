@@ -2,15 +2,14 @@
 
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
-
 #include "nanovg.h"
 #define NANOVG_GL3_IMPLEMENTATION
-#include "GaugeLoader/GaugeLoader.hpp"
-#include "nanovg_gl.h"
-
 #include <chrono>
 #include <mutex>
 #include <thread>
+
+#include "GaugeLoader/GaugeLoader.hpp"
+#include "nanovg_gl.h"
 
 constexpr int FPS_CAP = 144;
 constexpr double FRAME_DURATION = 1.0 / FPS_CAP;
@@ -18,7 +17,8 @@ constexpr double FRAME_DURATION = 1.0 / FPS_CAP;
 Application *Application::s_Instance = nullptr;
 
 Application::Application(const ApplicationSpecifications &specifications)
-    : m_Specification(specifications), m_Window(nullptr) {
+    : m_Specification(specifications)
+    , m_Window(nullptr) {
   if (auto result = Init(); !result.has_value()) {
     result.error().Dispatch();
   }
@@ -51,10 +51,9 @@ std::expected<void, Application::Error> Application::Init() {
 
   const auto version = SetupGLVersion();
 
-  m_Window =
-      glfwCreateWindow(static_cast<int>(m_Specification.window_size.first),
-                       static_cast<int>(m_Specification.window_size.second),
-                       m_Specification.name.c_str(), nullptr, nullptr);
+  m_Window = glfwCreateWindow(static_cast<int>(m_Specification.window_size.first),
+                              static_cast<int>(m_Specification.window_size.second), m_Specification.name.c_str(),
+                              nullptr, nullptr);
 
   if (m_Window == nullptr) {
     return std::unexpected(Error("Failed to create window"));
@@ -70,7 +69,7 @@ std::expected<void, Application::Error> Application::Init() {
 
   ImGui::CreateContext();
   ImGuiIO &io = ImGui::GetIO();
-  (void)io;
+  (void) io;
   io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
   io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
@@ -96,8 +95,8 @@ const char *Application::SetupGLVersion() {
   const char *glsl_version = "#version 150";
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // 3.2+ only
-  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // Required on Mac
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
+  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);  // Required on Mac
 #else
   // GL 3.0 + GLSL 130
   const char *glsl_version = "#version 130";
@@ -111,7 +110,6 @@ const char *Application::SetupGLVersion() {
 }
 
 std::expected<void, Application::Error> Application::Shutdown() {
-
   m_Layer->OnDetach();
 
   ImGui_ImplOpenGL3_Shutdown();
@@ -163,17 +161,15 @@ std::expected<void, Application::Error> Application::Run() {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 4.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-    window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse |
-                    ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
-                    ImGuiWindowFlags_NoBackground;
-    window_flags |=
-        ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+    window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
+        ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBackground;
+    window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
 
     ImGui::Begin("DockSpaceWindow", nullptr, window_flags);
 
     m_Layer->OnUIRender();
 
-    for (auto &gauge : GaugeLoader::GetInstance()->GetAllRenderers()) {
+    for (auto &gauge: GaugeLoader::GetInstance()->GetAllRenderers()) {
       gauge.CreateImGuiWindow();
     }
 
@@ -190,7 +186,7 @@ std::expected<void, Application::Error> Application::Run() {
 
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-    for (auto &gauge : GaugeLoader::GetInstance()->GetAllRenderers()) {
+    for (auto &gauge: GaugeLoader::GetInstance()->GetAllRenderers()) {
       gauge.RenderContents();
     }
 
@@ -207,25 +203,16 @@ std::expected<void, Application::Error> Application::Run() {
 
     const double endTime = glfwGetTime();
 
-    if (const double frameTime = endTime - start_time;
-        frameTime < FRAME_DURATION) {
-      std::this_thread::sleep_for(
-          std::chrono::duration<double>(FRAME_DURATION - frameTime));
+    if (const double frameTime = endTime - start_time; frameTime < FRAME_DURATION) {
+      std::this_thread::sleep_for(std::chrono::duration<double>(FRAME_DURATION - frameTime));
     }
   }
   return {};
 }
 
-std::unique_ptr<Application>
-Application::CreateApplication(int argc, char **argv,
-                               std::unique_ptr<Layer> layer) {
-  const auto specifications =
-      ApplicationSpecifications{"WASM Emulator",
-                                std::make_pair(1440, 1026),
-                                std::make_pair(3840, 2160),
-                                std::make_pair(1240, 680),
-                                true,
-                                false};
+std::unique_ptr<Application> Application::CreateApplication(int argc, char **argv, std::unique_ptr<Layer> layer) {
+  const auto specifications = ApplicationSpecifications{
+      "WASM Emulator", std::make_pair(1440, 1026), std::make_pair(3840, 2160), std::make_pair(1240, 680), true, false};
   auto app = std::make_unique<Application>(specifications);
   app->PushLayer(std::move(layer));
 
