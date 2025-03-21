@@ -21,6 +21,8 @@
 
 #include "imgui.h"
 
+#include <imgui_internal.h>
+
 struct NVGcontext;
 
 class Application {
@@ -59,6 +61,8 @@ public:
     layer->OnAttach();
   }
 
+  GLFWwindow *GetHandle() { return m_Window; }
+
   std::expected<void, Error> Run();
 
   void Close();
@@ -84,7 +88,7 @@ private:
   ApplicationSpecifications m_Specification;
   static Application *s_Instance;
   GLFWwindow *m_Window;
-  NVGcontext *m_NVGContext = nullptr;
+  // NVGcontext *m_NVGContext = nullptr;
 
   std::unordered_map<std::string, ImFont *> m_Fonts;
 

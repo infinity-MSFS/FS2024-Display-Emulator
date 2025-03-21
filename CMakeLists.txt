@@ -42,8 +42,7 @@ add_executable(FS2024_WASM_Emulator src/main.cpp
         src/GaugeLoader/GaugeLoader.cpp
         src/GaugeLoader/GaugeLoader.hpp
         src/FileDialog/FileDialog.hpp
-        src/InstrumentRenderer/InstrumentRenderer.cpp
-        src/InstrumentRenderer/InstrumentRenderer.hpp)
+        src/FsShims/FsStructs.hpp)
 
 file(GLOB IMGUI_SOURCES
         ${infinity_SOURCE_DIR}/src/imgui/
@@ -57,7 +56,7 @@ file(GLOB IMGUI_SOURCES
 )
 target_sources(FS2024_WASM_Emulator PRIVATE ${IMGUI_SOURCES})
 
-target_include_directories(FS2024_WASM_Emulator PRIVATE ${infinity_SOURCE_DIR}/src/imgui)
+target_include_directories(FS2024_WASM_Emulator PRIVATE ${infinity_SOURCE_DIR}/src/imgui src)
 target_link_options(FS2024_WASM_Emulator PRIVATE -rdynamic)
 
 target_link_libraries(FS2024_WASM_Emulator PRIVATE OpenGL::GL glfw CURL::libcurl nanovg::nanovg GLEW::GLEW)

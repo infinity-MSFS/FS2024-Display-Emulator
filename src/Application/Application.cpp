@@ -5,6 +5,7 @@
 
 #include "nanovg.h"
 #define NANOVG_GL3_IMPLEMENTATION
+#include "GaugeLoader/GaugeLoader.hpp"
 #include "nanovg_gl.h"
 
 #include <chrono>
@@ -66,11 +67,6 @@ std::expected<void, Application::Error> Application::Init() {
     return std::unexpected(Error("Failed to initialize GLEW"));
   }
 
-  m_NVGContext = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES | NVG_DEBUG);
-
-  if (m_NVGContext == nullptr) {
-    return std::unexpected(Error("Failed to create NVG context"));
-  }
 
   ImGui::CreateContext();
   ImGuiIO &io = ImGui::GetIO();
@@ -177,12 +173,9 @@ std::expected<void, Application::Error> Application::Run() {
 
     m_Layer->OnUIRender();
 
-    ImGui::Begin("NanoVG");
-    ImVec2 pos = ImGui::GetCursorScreenPos();
-    ImVec2 size = ImGui::GetContentRegionAvail();
-    // Just reserve the space in ImGui but don't draw anything yet
-    ImGui::InvisibleButton("canvas", size);
-    ImGui::End();
+    for (auto &gauge : GaugeLoader::GetInstance()->GetAllRenderers()) {
+      gauge.CreateImGuiWindow();
+    }
 
     ImGui::PopStyleVar(3);
     ImGui::End();
@@ -197,38 +190,8 @@ std::expected<void, Application::Error> Application::Run() {
 
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-    int fbWidth = static_cast<int>(size.x);
-    int fbHeight = static_cast<int>(size.y);
-    if (fbWidth > 0 && fbHeight > 0) {
-      // Save the current OpenGL state
-      GLint last_viewport[4];
-      glGetIntegerv(GL_VIEWPORT, last_viewport);
-      GLboolean last_scissor_test;
-      glGetBooleanv(GL_SCISSOR_TEST, &last_scissor_test);
-
-      // Set up GL state for NanoVG
-      glEnable(GL_BLEND);
-      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-      glEnable(GL_CULL_FACE);
-      glDisable(GL_DEPTH_TEST);
-      glDisable(GL_SCISSOR_TEST);
-
-      // Set viewport to match the NanoVG window size
-      glViewport(pos.x, display_h - pos.y - fbHeight, fbWidth, fbHeight);
-
-      nvgBeginFrame(m_NVGContext, fbWidth, fbHeight, 1.0f);
-
-      nvgBeginPath(m_NVGContext);
-      nvgRect(m_NVGContext, 0, 0, fbWidth - 20, fbHeight - 20);
-      nvgFillColor(m_NVGContext, nvgRGB(255, 0, 0));
-      nvgFill(m_NVGContext);
-
-      nvgEndFrame(m_NVGContext);
-
-      glViewport(last_viewport[0], last_viewport[1], last_viewport[2],
-                 last_viewport[3]);
-      if (last_scissor_test)
-        glEnable(GL_SCISSOR_TEST);
+    for (auto &gauge : GaugeLoader::GetInstance()->GetAllRenderers()) {
+      gauge.RenderContents();
     }
 
     glfwSwapBuffers(m_Window);

@@ -19,9 +19,8 @@ public:
     if (ImGui::Button("Load Gauge")) {
       if (!selected_file.empty()) {
         try {
-          auto gauge = GaugeLoader::GetInstance()->GetOrLoadGauge(selected_file,
-                                                                  file_name);
-          gauge.init(nullptr, nullptr);
+          GaugeLoader::GetInstance()->GetOrLoadGauge(selected_file, file_name);
+
         } catch (const std::exception &e) {
           std::cerr << "Error loading gauge: " << e.what() << std::endl;
         }
