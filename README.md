@@ -35,3 +35,43 @@ and WASM deployment
   debugging.
 
 - Better resource monitoring and profiling capabilities.
+
+## How to Use
+
+### WASM Project Setup
+
+1. In your existing WASM project, add the compatibility header `include/Emulator.h` to your gauge source files. This
+   header
+   redefines some rendering functions to use the emulator's OpenGL context instead of the simulator's.
+
+2. define `EMULATOR` in your gauge source files to enable emulator-specific code.
+3. compile your gauge as a shared library (`.so` on Linux, `.dll` on Windows) instead of a WASM module. (no changes to
+   your existing build system should be needed)
+4. Create a `<GAUGE_NAME>.json` next to your shared library, this serves as a replacement for a `panel.cfg` in the sim,
+   the schema
+   is as follows:
+
+```json
+{
+  "gauge": {
+    "size": {
+      "width": 800,
+      "height": 600
+    },
+    "string_params": ""
+  }
+}
+```
+
+### Emulator Setup
+
+1. Clone this repo
+2. Build the emulator using `cmake` (see below)
+3. Run the emulator and load your gauge using the control panel
+
+## Things to Note
+
+- MSFS does not provide a cross-platform shared library for its SDK functions (its built into the sim), so all bindings
+  must be implemented
+  manually in the emulator. As a result, only common rendering and simvars are supported. Networking and events are
+  planned for future updates but are not currently available.
