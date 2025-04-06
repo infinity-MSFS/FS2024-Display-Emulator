@@ -36,7 +36,7 @@ class RenderLayer : public Layer {
 
   void OnDetach() override {}
 
-  void OnUpdate(float ts) override {}
+  void OnUpdate(float ts) override { GaugeLoader::GetInstance()->UpdateGauges(ts); }
 };
 
 int EntryPoint(const int argc, char **argv) {

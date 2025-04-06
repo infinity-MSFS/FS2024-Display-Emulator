@@ -44,6 +44,14 @@ class GaugeLoader {
     return m_Instance;
   }
 
+
+  void UpdateGauges(float dTime) {
+    for (const auto &gauge: m_Gauges) {
+      if (gauge.second.second.update) {
+        gauge.second.second.update(gauge.second.first, dTime);
+      }
+    }
+  }
   std::unordered_map<std::string, std::pair<unsigned long long, Gauge>> GetAllGauges() const { return m_Gauges; }
 
   std::vector<InstrumentRenderer> GetAllRenderers() { return m_Renderers; }
