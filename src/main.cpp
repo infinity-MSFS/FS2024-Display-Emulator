@@ -32,6 +32,16 @@ class RenderLayer : public Layer {
         }
       }
     }
+    ImGui::Begin("SimVars");
+    ImGui::Text("SimVar Name    |     Value");
+    auto gauge_loader = GaugeLoader::GetInstance();
+    auto variables = gauge_loader->GetVariables();
+    for (const auto &variable: variables) {
+      ImGui::Text("%s", variable.first.c_str());
+      ImGui::SameLine();
+      ImGui::Text("%.2f", variable.second);
+    }
+    ImGui::End();
   }
 
   void OnDetach() override {}

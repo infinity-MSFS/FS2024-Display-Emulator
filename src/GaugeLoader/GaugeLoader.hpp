@@ -29,6 +29,7 @@ class GaugeLoader {
     GaugeUpdateFunc update;
     GaugeMouseHandlerFunc mouse_handler;
 
+
     struct MountParams {
       int width;
       int height;
@@ -53,6 +54,37 @@ class GaugeLoader {
     }
   }
   std::unordered_map<std::string, std::pair<unsigned long long, Gauge>> GetAllGauges() const { return m_Gauges; }
+  std::vector<std::pair<std::string, double>> GetVariables() const { return m_Variables; }
+  int AddVariable(const std::string &name, double value) {
+    m_Variables.emplace_back(name, value);
+    return m_Variables.size() - 1;
+  }
+  void RemoveVariable(const std::string &name) {
+    for (int i = 0; i < m_Variables.size(); ++i) {
+      if (m_Variables[i].first == name) {
+        m_Variables.erase(m_Variables.begin() + i);
+      }
+    }
+  }
+  double GetVariable(const std::string &name) {
+    for (int i = 0; i < m_Variables.size(); ++i) {
+      if (m_Variables[i].first == name) {
+        return m_Variables[i].second;
+      }
+    }
+    return 0;
+  }
+  double GetVariable(const int id) {
+    if (id <= m_Variables.size()) return m_Variables[id].second;
+    return 0;
+  }
+  void AddVariable(const std::vector<std::pair<std::string, double>> &values) {
+    for (const auto &value: values) {
+      AddVariable(value.first, value.second);
+    }
+  }
+
+  void UpdateVariable(const int id, double value) { m_Variables[id].second = value; }
 
   std::vector<InstrumentRenderer> GetAllRenderers() { return m_Renderers; }
 
@@ -100,6 +132,7 @@ class GaugeLoader {
 
   std::unordered_map<std::string, std::pair<unsigned long long, Gauge>> m_Gauges;  // <gauge_name, <ctx, Gauge>
   std::vector<InstrumentRenderer> m_Renderers;
+  std::vector<std::pair<std::string, double>> m_Variables;
 };
 
 struct NVGcontext;

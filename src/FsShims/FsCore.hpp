@@ -67,10 +67,12 @@ struct FsVarParamVariant {
   };
 };
 
+
 struct FsVarParamArray {
   unsigned int size = 0;
   FsVarParamVariant *array = nullptr;
 };
+
 #pragma endregion
 
 #pragma pack(pop)

@@ -154,6 +154,8 @@ void InstrumentRenderer::CreateImGuiWindow() {
       {static_cast<float>(m_gauge.mount_params.width), static_cast<float>(m_gauge.mount_params.height)});
   std::string title =
       m_Title + " " + std::to_string(m_gauge.mount_params.width) + "x" + std::to_string(m_gauge.mount_params.height);
+  ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
+
   ImGui::Begin(title.c_str(), nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
   ImVec2 position = ImGui::GetCursorScreenPos();
   ImVec2 size = ImGui::GetContentRegionAvail();
@@ -169,4 +171,5 @@ void InstrumentRenderer::CreateImGuiWindow() {
   }
 
   ImGui::End();
+  ImGui::PopStyleColor();
 }

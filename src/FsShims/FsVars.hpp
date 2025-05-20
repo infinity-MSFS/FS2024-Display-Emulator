@@ -2,6 +2,8 @@
 
 #include "FsCore.hpp"
 
+extern "C" {
+
 #pragma pack(push, 4)
 
 typedef int FsSimVarId;
@@ -27,27 +29,23 @@ enum eFsSimCustomSimVarScope : unsigned char {
 
 #pragma pack(pop)
 
-FsUnitId fsVarsGetUnitId(const char *unitName);
+
+FsUnitId fsVarsGetUnitId(
+    const char *unitName);  // can just return 1 since im not doing any unit conversions in the backend
 
 FsSimVarId fsVarsGetAircraftVarId(const char *simVarName);
-FsVarError fsVarsAircraftVarGet(FsSimVarId simvar, FsUnitId unit,
-                                FsVarParamArray param, double *result);
-FsVarError fsVarsAircraftVarSet(FsSimVarId simvar, FsUnitId unit,
-                                FsVarParamArray param, double value);
+FsVarError fsVarsAircraftVarGet(FsSimVarId simvar, FsUnitId unit, FsVarParamArray param, double *result);
+FsVarError fsVarsAircraftVarSet(FsSimVarId simvar, FsUnitId unit, FsVarParamArray param, double value);
 
 FsNamedVarId fsVarsGetRegisteredNamedVarId(const char *name);
 FsNamedVarId fsVarsRegisterNamedVar(const char *name);
 void fsVarsNamedVarGet(FsNamedVarId var, FsUnitId unit, double *result);
 void fsVarsNamedVarSet(FsNamedVarId var, FsUnitId unit, double value);
 
-FsCustomSimVarId fsVarsRegisterCustomSimVar(const char *name,
-                                            const char *componentPath,
-                                            eFsSimCustomSimVarScope scope);
-FsVarError fsVarsCustomSimVarGet(FsCustomSimVarId var, FsUnitId unit,
-                                 double *result);
-FsVarError fsVarsCustomSimVarSet(FsCustomSimVarId var, FsUnitId unit,
-                                 double value);
+FsCustomSimVarId fsVarsRegisterCustomSimVar(const char *name, const char *componentPath, eFsSimCustomSimVarScope scope);
+FsVarError fsVarsCustomSimVarGet(FsCustomSimVarId var, FsUnitId unit, double *result);
+FsVarError fsVarsCustomSimVarSet(FsCustomSimVarId var, FsUnitId unit, double value);
 
 FsEnvVarId fsVarsGetEnvironmentVarId(const char *name);
-FsVarError fsVarsEnvironmentVarGet(FsEnvVarId id, FsUnitId unit, double *fvalue,
-                                   int *ivalue);
+FsVarError fsVarsEnvironmentVarGet(FsEnvVarId id, FsUnitId unit, double *fvalue, int *ivalue);
+}

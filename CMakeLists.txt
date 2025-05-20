@@ -43,7 +43,8 @@ add_executable(FS2024_WASM_Emulator src/main.cpp
         src/GaugeLoader/GaugeLoader.cpp
         src/GaugeLoader/GaugeLoader.hpp
         src/FileDialog/FileDialog.hpp
-        src/FsShims/FsStructs.hpp)
+        src/FsShims/FsStructs.hpp
+        src/FsShims/SimParamArrayHelper.hpp)
 
 file(GLOB IMGUI_SOURCES
         ${infinity_SOURCE_DIR}/src/imgui/
