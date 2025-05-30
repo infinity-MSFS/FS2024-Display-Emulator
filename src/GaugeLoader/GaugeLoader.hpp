@@ -75,7 +75,7 @@ class GaugeLoader {
     return 0;
   }
   double GetVariable(const int id) {
-    if (id <= m_Variables.size()) return m_Variables[id].second;
+    if (id >= 0 && id < m_Variables.size()) return m_Variables[id].second;
     return 0;
   }
   void AddVariable(const std::vector<std::pair<std::string, double>> &values) {

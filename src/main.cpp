@@ -36,10 +36,12 @@ class RenderLayer : public Layer {
     ImGui::Text("SimVar Name    |     Value");
     auto gauge_loader = GaugeLoader::GetInstance();
     auto variables = gauge_loader->GetVariables();
+    int index = 0;
     for (const auto &variable: variables) {
-      ImGui::Text("%s", variable.first.c_str());
-      ImGui::SameLine();
-      ImGui::Text("%.2f", variable.second);
+      float value = variable.second;
+      ImGui::SliderFloat(variable.first.c_str(), &value, -400.0f, 400.0f, "%.3f");
+      gauge_loader->UpdateVariable(index, value);
+      index++;
     }
     ImGui::End();
   }
