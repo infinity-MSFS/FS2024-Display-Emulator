@@ -53,9 +53,17 @@ class GaugeLoader {
       }
     }
   }
+  bool IsUpdateQueued() { return m_IsUpdateQueued; }
+  void SetUpdateQueued(bool queued) { m_IsUpdateQueued = queued; }
   std::unordered_map<std::string, std::pair<unsigned long long, Gauge>> GetAllGauges() const { return m_Gauges; }
   std::vector<std::pair<std::string, double>> GetVariables() const { return m_Variables; }
   int AddVariable(const std::string &name, double value) {
+    for (int i = 0; i < m_Variables.size(); ++i) {
+      if (m_Variables[i].first == name) {
+        return i;
+      }
+    }
+
     m_Variables.emplace_back(name, value);
     return m_Variables.size() - 1;
   }
@@ -129,6 +137,7 @@ class GaugeLoader {
 
   private:
   static GaugeLoader *m_Instance;
+  bool m_IsUpdateQueued = false;
 
   std::unordered_map<std::string, std::pair<unsigned long long, Gauge>> m_Gauges;  // <gauge_name, <ctx, Gauge>
   std::vector<InstrumentRenderer> m_Renderers;

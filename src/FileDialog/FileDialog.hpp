@@ -34,7 +34,7 @@ class FileDialog {
       selectedFile = OpenFileDialog();
     }
     ImGui::SameLine();
-    ImGui::TextUnformatted(selectedFile.c_str());
+    // ImGui::TextUnformatted(selectedFile.c_str());
   }
 
   static std::string GetFileName(const std::string &file_path) {

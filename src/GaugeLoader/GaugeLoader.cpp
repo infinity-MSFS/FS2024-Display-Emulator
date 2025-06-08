@@ -4,11 +4,13 @@
 #include "FileDialog/FileDialog.hpp"
 //
 #include <GLFW/glfw3.h>
+#include <atomic>
 #include <dlfcn.h>
 #include <iostream>
 #include <ostream>
 #include <ranges>
 #include <stdexcept>
+#include <thread>
 
 #include "nanovg.h"
 
@@ -18,6 +20,48 @@ ImVec2 InstrumentRenderer::m_Position = {0.0f, 0.0f};
 ImVec2 InstrumentRenderer::m_Size = {0.0f, 0.0f};
 
 static unsigned long long base_ctx = 1;
+
+
+void reload_gauge(const std::string &gauge_name, const std::string &gauge_path) {
+  auto gauge_loader = GaugeLoader::GetInstance();
+  gauge_loader->UnloadAllGauges();
+  std::thread([gauge_path, gauge_name]() {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));  // Wait for this shit to work
+    std::cout << "reloading: " << gauge_path << " " << gauge_name << std::endl;
+    try {
+      //  GaugeLoader::GetInstance()->GetOrLoadGauge(gauge_path, gauge_name);
+      GaugeLoader::GetInstance()->SetUpdateQueued(true);
+    } catch (const std::exception &e) {
+      std::cerr << "Error loading gauge: " << e.what() << std::endl;
+    }
+  }).detach();
+}
+
+void start_gauge_watcher(const std::filesystem::path &gauge_path, const std::string &gauge_name) {
+  std::thread([gauge_path, gauge_name]() {
+    std::cout << "[Watcher] Started for " << gauge_name << std::endl;
+    std::error_code error_code;
+    auto last_write_time = std::filesystem::last_write_time(gauge_path, error_code);
+
+    while (true) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+      auto current_time = std::filesystem::last_write_time(gauge_path, error_code);
+      if (error_code) {
+        std::cerr << "[Watcher] Error checking file: " << error_code.message() << std::endl;
+        continue;
+      }
+      if (current_time != last_write_time) {
+        std::cout << "[Watcher] File changed: " << gauge_name << std::endl;
+        last_write_time = current_time;
+
+        std::thread([gauge_path, gauge_name]() { reload_gauge(gauge_name, gauge_path); }).detach();
+        return;
+      }
+    }
+  }).detach();
+  ;
+}
 
 std::expected<std::pair<unsigned long long, GaugeLoader::Gauge>, std::string> GaugeLoader::LoadGauge(
     const std::string &gauge_path, const std::string &gauge_name) {
@@ -64,6 +108,8 @@ std::expected<std::pair<unsigned long long, GaugeLoader::Gauge>, std::string> Ga
 
   std::pair<unsigned long long, Gauge> ret = std::make_pair(base_ctx, gauge);
   base_ctx++;
+
+  start_gauge_watcher(gauge_path, gauge_name);
 
   return ret;
 }
